@@ -27,6 +27,7 @@ const AnswerButton = ({
             onClick={handleClick}
             disabled={isDisabled}
             ref={buttonRef}
+            // disableElevation
         >
             {answerName}
         </Button>

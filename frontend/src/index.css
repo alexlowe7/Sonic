@@ -1,8 +1,12 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter&family=Montserrat:wght@400;500&display=swap');
+
+
 body {
   margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+  /* font-family: 'inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
     'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
-    sans-serif;
+    sans-serif; */
+    font-family: 'Inter', sans-serif !important;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
@@ -12,15 +16,41 @@ code {
     monospace;
 }
 
-.game-interval--container, .game-chords--container, .homepage-container {
+.game-interval--container, .game-chords--container, .homepage-container, .profile-container {
     max-width: 900px;
     margin: auto;
+}
+
+.test-font {
+  font-family: 'Inter', sans-serif !important;
+}
+
+.register-form-container, .profile-container {
+  max-width: 300px;
+  margin: auto;
 }
 
 #play-button {
     max-width: 120px;
     font-size: 18px;
     font-weight: 500;
+}
+
+.signup-button, .login-button {
+  text-transform: none !important;
+}
+
+.link-button {
+  text-transform: none !important;
+  font-weight: 550 !important;
+    padding: 0rem .6rem .15rem !important;
+    background-color: #1976d2;
+    font-size: 1rem !important;
+    font-family: inherit !important;
+}
+
+.game-start {
+  font-size: 2rem;
 }
 
 .interval-button {
@@ -30,12 +60,15 @@ code {
     margin: 2rem !important;
     border-radius: 6px !important;
     text-transform: none !important;
-    font-weight: 550 !important;
-    padding: 0rem .6rem .15rem !important;
+    /* font-weight: 550 !important; */
+    /* padding: 0rem .6rem .15rem !important; */
+    padding: 0rem .6rem !important;
     background-color: #1976d2;
     font-size: 1.1rem !important;
-    font-family: inherit !important;
+    /* font-family: inherit !important; */
+    font-family: 'Inter', sans-serif;
 }
+
 .interval-button.correct {
   /* background-color: #16b52a !important; */
   background-color: #16b42b !important;
@@ -88,7 +121,7 @@ code {
 
 .score-section {
   border-bottom: 1px solid rgba(150, 150, 150, 0.322);
-  /* font-family: 'Courier New', Courier, monospace; */
+  font-family: 'Inter', sans-serif;
   font-weight: 400 !important;
   font-size: 1.5rem !important;
 }

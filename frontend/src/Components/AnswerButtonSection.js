@@ -1,11 +1,11 @@
 import React from "react";
 import AnswerButton from "./AnswerButton";
-import { Row, Col, Stack } from "react-bootstrap";
+import { Row, Col } from "react-bootstrap";
 
 const AnswerButtonSection = ({ 
     DEFAULT_INTERVALS,
-    intervals,
-    interval,
+    activeIntervals,
+    currentInterval,
     handleCorrectAnswer,
     handleIncorrectAnswer,
     resetKey,
@@ -14,11 +14,11 @@ const AnswerButtonSection = ({
         <Row>
             <Col xs={12} md={8} className="mt-2 mx-auto button-container text-center">
                 {DEFAULT_INTERVALS.map((intervalName) =>
-                    intervals.includes(intervalName) && (
+                    activeIntervals.includes(intervalName) && (
                         <AnswerButton
                             key={`${intervalName}-${resetKey}`}
                             answerName={intervalName}
-                            correctAnswer={interval}
+                            correctAnswer={currentInterval}
                             onCorrect={handleCorrectAnswer}
                             onIncorrect={handleIncorrectAnswer}
                         />

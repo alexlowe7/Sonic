@@ -1,28 +1,42 @@
-import React, { useState, useEffect } from "react";
-import {  DEFAULT_INTERVALS, getRandomInt, getInterval, generate2ndNote, getRandomBool } from "../../Helpers/Helpers";
+import React, { useState, useEffect, useRef } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
+import {  DEFAULT_INTERVALS, DEFAULT_INTERVALS_STAT, 
+            getRandomInt, getInterval, generate2ndNote, 
+            getRandomBool, updateStatsObject } from "../../Helpers/Helpers";
 import GameHeader from "../../Components/GameHeader";
 import SettingsWindow from "../../Components/SettingsWindow";
 import PlayButtonSection from "../../Components/PlayButtonSection";
 import AnswerButtonSection from "../../Components/AnswerButtonSection";
 import ScoreDisplaySection from "../../Components/ScoreDisplaySection";
+import useAuth from "../../Authorization/useAuth";
+import api from "../../API/Api";
+import StatsTable from "../../Components/StatsTable";
 
 const IntervalsContainer = () => {
     // States
+    const [gamePlayed, setGamePlayed] = useState(false)
     const [correct, setCorrect] = useState(0);
     const [incorrect, setIncorrect] = useState(0);
+    const [score, setScore] = useState(0);
+    const [statBreakdown, setStatBreakdown] = useState(DEFAULT_INTERVALS_STAT);
     const [hasAnswered, setHasAnswered] = useState(false);
     const [audio, setAudio] = useState([]);
     const [resetKey, setResetKey] = useState(0);
     const [harmonicModeEnabled, setHarmonicModeEnabled] = useState(false);
     const [ascDescModeEnabled, setAscDescModeEnabled] = useState(true);
-    const [ascDesc, setAscDesc] = useState('Ascending');
-    const [ascDescBool, setAscDescBool] = useState(true)
+    const [ascDescSwitch, setAscDescSwitch] = useState('Ascending');
+    const [ascDescBool, setAscDescBool] = useState(true);
+    const [activeIntervals, setActiveIntervals] = useState(DEFAULT_INTERVALS);
+    const [note1, setNote1] = useState(getRandomInt(0, 24));
+    const [note2, setNote2] = useState(generate2ndNote(note1, activeIntervals));
+    const [currentInterval, setCurrentInterval] = useState(getInterval(note1, note2));
     const [showHelpEnabled, setShowHelpEnabled] = useState(false);
     const [showSettingsEnabled, setShowSettingsEnabled] = useState(false);
-    const [intervals, setIntervals] = useState(DEFAULT_INTERVALS);
-    const [note1, setNote1] = useState(getRandomInt(0, 24));
-    const [note2, setNote2] = useState(generate2ndNote(note1, intervals));
-    const [interval, setInterval] = useState(getInterval(note1, note2));
+
+    const { login, accessToken, refreshToken, isAuthenticated } = useAuth();
+    const navigate = useNavigate();
+    const location = useLocation();
+    const statsRef = useRef(statBreakdown);
     
     // ON MOUNT
     useEffect(() => {
@@ -33,39 +47,44 @@ const IntervalsContainer = () => {
             let file = new Audio(`${process.env.PUBLIC_URL}/Audio/Intervals-IndividualNotes/${i}.mp3`);
             temp.push(file);
         }
- 
+        console.log('Component mounted')
         setAudio(temp);
 
-        // ON UN-MOUNT
-        // Pause and empty Temp array, reset Audio State to empty
+        // Perform the cleanup when the route changes
+        // temp.forEach((audioFile) => {
+        //     audioFile.pause();
+        //     audioFile.src = '';
+        //   });
         return () => {
-            temp.forEach((audioFile) => {
-                audioFile.pause();
-                audioFile.src = '';
-              });
-              setAudio([]);
-        }
+            // Cleanup function
+            setAudio([]);
+            console.log('Component unmounted');
+            // if (!gamePlayed) return;
+            api.postIntervalSessionData(statsRef.current);
+        };
 
     }, []);
 
-    // Update notes when 'intervals' state changes,
-    // to avoid user not having the option to select the correct answer
+    useEffect(() => {
+        statsRef.current = statBreakdown;
+      }, [statBreakdown]);
+
     useEffect(() => {
         updateNotes();
         // eslint-disable-next-line
-      }, [intervals]);
+    }, [activeIntervals]);
 
     // Handles all state changes necessary to move on to next question
     const updateNotes = () => {
         return new Promise((resolve) => {
             const newNote1 = getRandomInt(0, 24);
-            const newNote2 = generate2ndNote(newNote1, intervals)
+            const newNote2 = generate2ndNote(newNote1, activeIntervals)
             const newInterval = getInterval(newNote1, newNote2);
             const bool = getRandomBool()
         
             setNote1(newNote1);
             setNote2(newNote2);
-            setInterval(newInterval);
+            setCurrentInterval(newInterval);
             setAscDescBool(bool);
             resolve({ 
                 note1: newNote1, 
@@ -75,14 +94,12 @@ const IntervalsContainer = () => {
         });
       };
 
-    // after 1 second, change reset key which re-renders all buttons 
     const resetButtonColors = () => {
         setTimeout(() => setResetKey(resetKey + 1), 1000);
       };
     
-    // 'play' functions handle playing the audio 
-    // Use 'audio' state with an index of 'note' to play the correct file
-
+    // 'playNote' functions handle playing the audio 
+    // Uses 'audio' state with an index of 'note' to play the correct file
     const playNote1 = (note) => {
         audio[note].play();
     }
@@ -106,66 +123,80 @@ const IntervalsContainer = () => {
         setTimeout(() => {
             playNote2(note2, note1, !harmonicModeEnabled)
         }, time);
-      };
+    };
     
-    // Play notes in different orders based on the current state
-    const handlePlayButtonClick = () => {
-        if (ascDescModeEnabled) {
-            if (ascDescBool) {
-                playInterval(note1, note2);
-            } else {
-                playInterval(note2, note1);
-            }
-        }
-        else {
-            if (ascDesc === "Ascending") {
-                playInterval(note1, note2);
-            }
-            else {
-                playInterval(note2, note1);
-            }
-        }
+    // Play notes in different orders based on the current state or optional arguments
+    const handlePlayButtonClick = (a = note1, b = note2, bool = ascDescBool) => {
+        if (isCurrentIntervalAsc(bool))
+            playInterval(a, b);
+        else
+            playInterval(b, a);
     };
     
     const handleCorrectAnswer = async () => {
-        // Wait 100ms to reset Button Colors to give time for user 
-        // to see that they clicked the correct answer
-        setTimeout(() => {
-            resetButtonColors()
-        }, 100)
-        // Only count 'correct' if it was their first attempt for this interval
+        checkGamePlayed();
         if (!hasAnswered) {
+            updateStats("correct", currentInterval, isCurrentIntervalAsc(), harmonicModeEnabled);
             setCorrect(correct + 1);
-          }
-        // Reset 'has answered' state
+            setScore(score + 10);
+        }
+
+        resetButtonColors();
         setHasAnswered(false);
-        // Await update notes to get proper notes to pass into playInterval function
-        // Was not working by simply using the state values as the playInterval function's input
+
         const { note1, note2, bool } = await updateNotes();
+
         setTimeout(() => {
-            if (ascDescModeEnabled) {
-                if (bool) {
-                    playInterval(note1, note2);
-                } else {
-                    playInterval(note2, note1);
-                }
-            }
-            else {
-                if (ascDesc === "Ascending") {
-                    playInterval(note1, note2);
-                }
-                else {
-                    playInterval(note2, note1);
-                }
-            }
+            handlePlayButtonClick(note1, note2, bool)
         }, 1000);
     };
 
     const handleIncorrectAnswer = () => {
-        if (!hasAnswered) {
-            setIncorrect(incorrect + 1);
-            setHasAnswered(true);
+        checkGamePlayed();
+        if (hasAnswered) {
+            setScore(Math.max(score - 1, 0))
+            return
         }
+        updateStats("incorrect", currentInterval, isCurrentIntervalAsc(), harmonicModeEnabled);
+        setIncorrect(incorrect + 1);
+        setScore(Math.max(score - 5, 0))
+        setHasAnswered(true);
+    };
+
+    // HELPERS
+    const updateStats = (
+        correctOrIncorrect,
+        intervalToUpdate,
+        isAscending,
+        isHarmonic
+    ) => {
+        const ascDescOrHarmonic = isHarmonic
+            ? 'harmonic'
+            : isAscending
+            ? 'ascending'
+            : 'descending';
+      
+        const updatedStats = updateStatsObject(
+            statBreakdown, 
+            intervalToUpdate, 
+            ascDescOrHarmonic, 
+            correctOrIncorrect,
+        );
+        console.table(updatedStats)
+        setStatBreakdown(updatedStats);
+        return;
+    };
+
+    const isCurrentIntervalAsc = (bool = ascDescBool) => {
+        return (
+            (ascDescModeEnabled && bool) || 
+            (!ascDescModeEnabled && ascDescSwitch === "Ascending")
+        );   
+      };
+
+    const checkGamePlayed = () => {
+        if (!gamePlayed)
+            setGamePlayed(true)
     };
 
     // MODE CHANGES
@@ -175,7 +206,7 @@ const IntervalsContainer = () => {
     }
 
     const handleAscDescSwitchChange = (newValue) => {
-        setAscDesc(newValue);
+        setAscDescSwitch(newValue);
     }
 
     const handleHarmonicModeChange = (event) => {
@@ -183,7 +214,7 @@ const IntervalsContainer = () => {
     };
 
     const handleToggleInterval = (event, label) => {
-        setIntervals(prevIntervals => {
+        setActiveIntervals(prevIntervals => {
 
             const isChecked = event.target.checked
             const intervalIsAlreadyActive = prevIntervals.includes(label)
@@ -197,10 +228,9 @@ const IntervalsContainer = () => {
                 return prevIntervals.filter(item => item !== label);
             }
         });
-      };
+    };
 
     // MODAL TOGGLE (SETTINGS/HELP)
-    // TODO: Abstract into helper module
 
     const closeSettings = () => {
         setShowSettingsEnabled(false);
@@ -219,11 +249,10 @@ const IntervalsContainer = () => {
     }
 
     const handleClickHelpButton = () => {
-        if (showHelpEnabled) {
+        if (showHelpEnabled)
             setShowHelpEnabled(false);
-        } else {
+        else
             setShowHelpEnabled(true);
-        }
     }
 
     return (
@@ -242,12 +271,15 @@ const IntervalsContainer = () => {
                 handleAscDescSwitchChange={handleAscDescSwitchChange}
                 isHarmonicModeEnabled={harmonicModeEnabled}
                 ascDescModeEnabled={ascDescModeEnabled}
-                ascDesc={ascDesc}
+                ascDescSwitch={ascDescSwitch}
                 DEFAULT_INTERVALS={DEFAULT_INTERVALS}
-                intervals={intervals}
+                activeIntervals={activeIntervals}
                 handleToggleInterval={handleToggleInterval}
             />
+            {/* <p className="test-font">This is a test. 100%. 598pts. </p> */}
+            {/* <StatsTable stats={statBreakdown}/> */}
             <ScoreDisplaySection 
+                score={score}
                 correct={correct} 
                 incorrect={incorrect} 
             />
@@ -258,8 +290,8 @@ const IntervalsContainer = () => {
             />
             <AnswerButtonSection 
                 DEFAULT_INTERVALS={DEFAULT_INTERVALS}
-                intervals={intervals}
-                interval={interval}
+                activeIntervals={activeIntervals}
+                currentInterval={currentInterval}
                 handleCorrectAnswer={handleCorrectAnswer}
                 handleIncorrectAnswer={handleIncorrectAnswer}
                 resetKey={resetKey}

@@ -2,6 +2,7 @@ import React from "react";
 import '../index.js';
 import AudiotrackSharpIcon from '@mui/icons-material/AudiotrackSharp';
 import Button from '@mui/material/Button'
+import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 
 const PlayButton = ({ handlePlayButtonClick, className }) => {
 
@@ -15,7 +16,7 @@ const PlayButton = ({ handlePlayButtonClick, className }) => {
             className={className}
             size="large"
         >
-            <AudiotrackSharpIcon
+            <PlayArrowIcon
                 color="white"
                 sx={{ 
                     fontSize: 40,

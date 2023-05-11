@@ -4,7 +4,7 @@ import ModeCheckbox from './ModeCheckbox';
 import OptionSwitch from './OptionSwitch';
 import { Row, Col } from 'react-bootstrap';
 
-const SettingsWindow = ({ onClose, open, intervals, DEFAULT_INTERVALS, ...props }) => {
+const SettingsWindow = ({ onClose, open, activeIntervals, DEFAULT_INTERVALS, ...props }) => {
     return (
         <Modal
             open={open}
@@ -40,7 +40,7 @@ const SettingsWindow = ({ onClose, open, intervals, DEFAULT_INTERVALS, ...props 
                         onChange={props.handleAscDescSwitchChange}
                         option1="Ascending"
                         option2="Descending"
-                        selected={props.ascDesc}
+                        selected={props.ascDescSwitch}
                     />
                     }
                 </Row>
@@ -50,7 +50,7 @@ const SettingsWindow = ({ onClose, open, intervals, DEFAULT_INTERVALS, ...props 
                         return (
                             <ModeCheckbox
                                 onChange={props.handleToggleInterval}
-                                isEnabled={intervals.includes(intervalName)}
+                                isEnabled={activeIntervals.includes(intervalName)}
                                 label={intervalName}
                                 key={intervalName}
                             />

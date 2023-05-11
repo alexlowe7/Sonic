@@ -7,9 +7,10 @@ import ApplicationViews from './ApplicationViews';
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
-  <React.StrictMode>
-    <ApplicationViews />
-  </React.StrictMode>
+  // <React.StrictMode>
+  //   <ApplicationViews />
+  // </React.StrictMode>
+  <ApplicationViews />
 );
 
 // If you want to start measuring performance in your app, pass a function
