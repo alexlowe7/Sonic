@@ -30,8 +30,7 @@ const settings = ['Profile', 'Account', 'Dashboard', 'Logout'];
 const Layout = ({ children }) => {
   const [anchorElNav, setAnchorElNav] = React.useState(null);
   const [anchorElUser, setAnchorElUser] = React.useState(null);
-  const { isAuthenticated } = useAuth();
-  const { logout } = useAuth();
+  const { user } = useAuth();
   const navigate = useNavigate();
 
   const handleOpenNavMenu = (event) => {
@@ -51,9 +50,11 @@ const Layout = ({ children }) => {
 
   const handleLogout = () => {
     handleCloseUserMenu();
-    logout();
+    // logout();
     navigate('/')
   }
+
+  
 
   return (
     <>
@@ -121,8 +122,8 @@ const Layout = ({ children }) => {
                         >
                             {pages.map((page) => (
                                 (
-                                    (page !== 'Login' || !isAuthenticated) && 
-                                    (page !== 'Sign Up' || !isAuthenticated)
+                                    (page !== 'Login' || !user) && 
+                                    (page !== 'Sign Up' || !user)
                                 ) &&
                                 <MenuItem key={page} onClick={handleCloseNavMenu}>
                                     <Link to={links[page]} style={{ textDecoration: 'none', color: 'inherit' }}>
@@ -164,8 +165,8 @@ const Layout = ({ children }) => {
                     <Box sx={{ flexGrow: 1, display: { xs: 'none', md: 'flex' } }}>
                         {pages.map((page) => (
                             (
-                                (page !== 'Login' || !isAuthenticated) && 
-                                (page !== 'Sign Up' || !isAuthenticated)
+                                (page !== 'Login' || !user) && 
+                                (page !== 'Sign Up' || !user)
                             ) &&
                             <Link to={links[page]} style={{ textDecoration: 'none' }}>
                                 <Button
@@ -188,7 +189,7 @@ const Layout = ({ children }) => {
                             
                         ))}
                     </Box>
-                    {isAuthenticated && 
+                    {user && 
                     <Box sx={{ flexGrow: 0 }}>
                         <Tooltip title="Open settings">
                             <IconButton onClick={handleOpenUserMenu} sx={{ p: 0 }}>

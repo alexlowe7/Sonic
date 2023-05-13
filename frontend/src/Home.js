@@ -19,6 +19,8 @@ const Home = () => {
                 <Alert severity="info" icon={false}>
                     <h6 className='test-font'>
                         Welcome to the Sonic Ear Training App, designed to make you a better musician.
+                        <br/><br/>
+                        Check out our games below, and sign up to track your progress and unlock advanced mode!
                     </h6>
                 </Alert>   
                 <Grid container spacing={2}>

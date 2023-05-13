@@ -2,51 +2,31 @@ import React, { useState, useEffect } from 'react';
 import AuthContext from './AuthContext';
 
 const AuthProvider = ({ children }) => {
-  const [accessToken, setAccessToken] = useState(localStorage.getItem('access_token'));
-  const [refreshToken, setRefreshToken] = useState(localStorage.getItem('refresh_token'));
-  const [isAuthenticated, setIsAuthenticated] = useState(accessToken !== null);
+    const [user, setUser] = useState(null);
 
-  useEffect(() => {
-    if (accessToken) {
-      localStorage.setItem('access_token', accessToken);
-    } else {
-      localStorage.removeItem('access_token');
-    }
-  }, [accessToken]);
+    useEffect(() => {
+        const fetchUserInfo = async () => {
+            try {
+                const response = await fetch('http://localhost:8000/get_user/',{
+                    method: "GET",
+                    credentials: 'include'
+                });
+                console.log(response)
+                if (!response.ok)
+                    return
+                
+                const data = await response.json();
+                setUser(data);
+            } catch (error) {
+                console.error('Failed to fetch user info:', error);
+                setUser(null)
+            }
+        };
 
-  useEffect(() => {
-    if (refreshToken) {
-      localStorage.setItem('refresh_token', refreshToken);
-    } else {
-      localStorage.removeItem('refresh_token');
-    }
-  }, [refreshToken]);
+        fetchUserInfo();
+    }, []);
 
-  const login = (access, refresh) => {
-    setAccessToken(access);
-    setRefreshToken(refresh);
-    setIsAuthenticated(true);
-  };
-
-  const logout = () => {
-    setAccessToken(null);
-    setRefreshToken(null);
-    setIsAuthenticated(false);
-  };
-
-  return (
-    <AuthContext.Provider
-      value={{
-        accessToken,
-        refreshToken,
-        isAuthenticated,
-        login,
-        logout,
-      }}
-    >
-      {children}
-    </AuthContext.Provider>
-  );
+    return <AuthContext.Provider value={{ user, setUser }}>{children}</AuthContext.Provider>;
 };
 
 export default AuthProvider;

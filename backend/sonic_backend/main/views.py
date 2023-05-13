@@ -1,4 +1,6 @@
-from django.contrib.auth import authenticate
+from django.contrib.auth import authenticate, login
+from django.contrib.auth.decorators import login_required
+from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth.models import User
 from django.db import IntegrityError
 # from django.shortcuts import render
@@ -6,7 +8,6 @@ from rest_framework import status, serializers
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
-from rest_framework_simplejwt.tokens import RefreshToken
 
 from .models import IntervalGameStats
 
@@ -14,14 +15,21 @@ from .models import IntervalGameStats
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ['id', 'username', 'email', 'first_name', 'last_name']
+        fields = ['id', 'username', 'email']
+
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
-def my_profile(request):
+@csrf_exempt
+def get_user(request):
+    print("get user ran")
     user = request.user
-    user_data = UserSerializer(user).data
-    return Response(user_data)
+    return Response({
+        'id': user.id,
+        'username': user.username,
+        'email': user.email,
+        'is_authenticated': True
+    }, status=status.HTTP_200_OK)
 
 @api_view(['POST'])
 def register(request):
@@ -57,7 +65,8 @@ def register(request):
     )
 
 @api_view(['POST'])
-def login(request):
+@csrf_exempt
+def login_user(request):
     email = request.data.get("email")
     password = request.data.get("password")
 
@@ -74,17 +83,13 @@ def login(request):
             {"message": "Invalid username or password."}, 
             status=status.HTTP_401_UNAUTHORIZED
         )
-
-    # Generate JWT tokens for the user
-    refresh = RefreshToken.for_user(user)
-    access_token = str(refresh.access_token)
-    refresh_token = str(refresh)
-
-    return Response({
-        "access": access_token,
-        "refresh": refresh_token
-    }, status=status.HTTP_200_OK)
-
+    
+    login(request, user)
+    user_data = UserSerializer(user).data
+    response = Response({"user": user_data}, status=status.HTTP_200_OK)
+    response["Access-Control-Allow-Credentials"] = "true"
+    print(response)
+    return response
 
 @api_view(['POST'])
 def create_interval_session(request):

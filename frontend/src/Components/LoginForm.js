@@ -10,7 +10,7 @@ const LoginForm = () => {
     const [errorMessage, setErrorMessage] = useState('')
     const [successMessage, setSuccessMessage] = useState('')
     const navigate = useNavigate();
-    const { login } = useAuth();
+    const { user, setUser } = useAuth();
 
     const initialValues = {
         email: '',
@@ -27,10 +27,11 @@ const LoginForm = () => {
         try {
             const response = await fetch('http://localhost:8000/login/', {
                 method: "POST",
+                credentials: "include",
                 headers: {
                     "Content-Type": "application/json"
                 },
-                body: JSON.stringify(data)
+                body: JSON.stringify(data),
             });
 
             const result = await response.json();
@@ -40,13 +41,11 @@ const LoginForm = () => {
                 setSubmitting(false)
                 return
             }
-            console.log(result)
-            const access = result.access
-            const refresh = result.refresh
 
+            console.log(result)
             setSuccessMessage('Login Successful.')
             setTimeout(() => {
-                login(access, refresh)
+                setUser(result.user)
                 navigate('/')
             }, 500)
             

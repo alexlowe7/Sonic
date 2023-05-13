@@ -33,7 +33,7 @@ const IntervalsContainer = () => {
     const [showHelpEnabled, setShowHelpEnabled] = useState(false);
     const [showSettingsEnabled, setShowSettingsEnabled] = useState(false);
 
-    const { login, accessToken, refreshToken, isAuthenticated } = useAuth();
+    // const { login, accessToken, refreshToken, isAuthenticated } = useAuth();
     const navigate = useNavigate();
     const location = useLocation();
     const statsRef = useRef(statBreakdown);
