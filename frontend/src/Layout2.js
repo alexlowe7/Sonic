@@ -15,6 +15,7 @@ import { AccountCircle } from '@mui/icons-material';
 import MusicNoteIcon from '@mui/icons-material/MusicNote';
 import { useNavigate, Outlet, Link } from 'react-router-dom';
 import useAuth from './Authorization/useAuth';
+import api from './API/Api';
 
 const links = {
     'Chords': '/chords',
@@ -22,6 +23,7 @@ const links = {
     'Sign Up': '/register',
     'Login': '/login',
     'Profile': '/profile',
+    'Dashboard': '/dashboard'
 }
 
 const pages = ['Chords', 'Notes', 'Login', 'Sign Up',];
@@ -30,7 +32,7 @@ const settings = ['Profile', 'Account', 'Dashboard', 'Logout'];
 const Layout = ({ children }) => {
   const [anchorElNav, setAnchorElNav] = React.useState(null);
   const [anchorElUser, setAnchorElUser] = React.useState(null);
-  const { user } = useAuth();
+  const { user, setUser } = useAuth();
   const navigate = useNavigate();
 
   const handleOpenNavMenu = (event) => {
@@ -48,9 +50,10 @@ const Layout = ({ children }) => {
     setAnchorElUser(null);
   };
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
     handleCloseUserMenu();
-    // logout();
+    await api.logout();
+    setUser(null);
     navigate('/')
   }
 
@@ -168,9 +171,9 @@ const Layout = ({ children }) => {
                                 (page !== 'Login' || !user) && 
                                 (page !== 'Sign Up' || !user)
                             ) &&
-                            <Link to={links[page]} style={{ textDecoration: 'none' }}>
+                            <Link to={links[page]} style={{ textDecoration: 'none' }} key={page}>
                                 <Button
-                                    key={page}
+                                key={page}
                                     onClick={handleCloseNavMenu}
                                     className='test-font'
                                     sx={{ 
@@ -213,8 +216,8 @@ const Layout = ({ children }) => {
                             onClose={handleCloseUserMenu}
                         >
                         {settings.map((setting) => (
-                            setting === 'Profile' ? (
-                            <Link to={links[setting]} style={{ textDecoration: 'none', color: 'inherit' }}>
+                            setting === 'Profile' || setting === 'Dashboard' ? (
+                            <Link key={setting} to={links[setting]} style={{ textDecoration: 'none', color: 'inherit' }}>
                                 <MenuItem key={setting} onClick={setting === 'Logout' ? handleLogout : handleCloseUserMenu}>
                                     <Typography className='test-font' textAlign="center">{setting}</Typography>
                                 </MenuItem>
@@ -233,10 +236,7 @@ const Layout = ({ children }) => {
                 </Toolbar>
             </Container>
         </AppBar>
-
-        {/* <Outlet /> */}
         {children}
-        {/* <main>{children}</main> */}
     </>
 
     

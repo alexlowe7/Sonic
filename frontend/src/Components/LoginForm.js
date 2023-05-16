@@ -3,6 +3,7 @@ import { Formik, Field, Form } from 'formik';
 import { Alert, Button, Stack, TextField } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import useAuth from '../Authorization/useAuth';
+import api from '../API/Api';
 
 
 const LoginForm = () => {
@@ -25,30 +26,14 @@ const LoginForm = () => {
         };
         
         try {
-            const response = await fetch('http://localhost:8000/login/', {
-                method: "POST",
-                credentials: "include",
-                headers: {
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify(data),
-            });
-
-            const result = await response.json();
-
-            if (!response.ok) {
-                setErrorMessage(result.message);
-                setSubmitting(false)
-                return
-            }
-
-            console.log(result)
-            setSuccessMessage('Login Successful.')
-            setTimeout(() => {
-                setUser(result.user)
-                navigate('/')
-            }, 500)
-            
+            await api.login(
+                data, 
+                setErrorMessage, 
+                setSubmitting,
+                setSuccessMessage,
+                setUser,
+                navigate,
+            );         
         } catch (error) {
             setErrorMessage('Server Error. Please try again later.');
         }

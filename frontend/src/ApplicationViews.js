@@ -8,6 +8,7 @@ import SignUpForm from './Components/SignUpForm';
 import LoginForm from './Components/LoginForm';
 import AuthProvider from './Authorization/AuthProvider';
 import ProfilePage from './Pages/ProfilePage';
+import Dashboard from './Pages/Dashboard';
 
 const ApplicationViews = () => {
     return (
@@ -35,6 +36,7 @@ const ApplicationViews = () => {
           <Route path="notes" element={<Layout><IntervalsContainer /></Layout>} />
           <Route path="chords" element={<Layout><ChordsContainer /></Layout>} />
           <Route path="profile" element={<Layout><ProfilePage /></Layout>} />
+          <Route path="dashboard" element={<Layout><Dashboard /></Layout>} />
         </Routes>
       </BrowserRouter>
     </AuthProvider>

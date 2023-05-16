@@ -14,6 +14,7 @@ import StatsTable from "../../Components/StatsTable";
 
 const IntervalsContainer = () => {
     // States
+    const [sessionID, setSessionID] = useState(null)
     const [gamePlayed, setGamePlayed] = useState(false)
     const [correct, setCorrect] = useState(0);
     const [incorrect, setIncorrect] = useState(0);
@@ -37,37 +38,89 @@ const IntervalsContainer = () => {
     const navigate = useNavigate();
     const location = useLocation();
     const statsRef = useRef(statBreakdown);
+    const idRef = useRef(sessionID);
+    const gamePlayedRef = useRef(gamePlayed)
+    const correctRef= useRef(correct)
+    const incorrectRef= useRef(incorrect)
+
+    useEffect(() => {
+        statsRef.current = statBreakdown;
+      }, [statBreakdown]);
+
+    useEffect(() => {
+        idRef.current = sessionID;
+    }, [sessionID]);
+
+    useEffect(() => {
+        gamePlayedRef.current = gamePlayed
+    }, [gamePlayed])
+
+    useEffect(() => {
+        correctRef.current = correct
+    }, [correct])
+
+    useEffect(() => {
+        incorrectRef.current = incorrect
+    }, [incorrect])
+
     
     // ON MOUNT
-    useEffect(() => {
-  
+    useEffect(() => {        
+
+        async function getSessiondID() {
+            const response = await api.createIntervalSession();
+            const id = response.id
+
+            if (id !== null) {
+                console.log("session id: ", id)
+                setSessionID(id)
+            } else {
+                console.log('session id is null')
+            }
+            return;
+        }
+
+        async function handleSessionStats() {
+            if (idRef.current === null) {
+                console.log('session id is null. running get session ID again')
+                await getSessiondID();
+                return; 
+            }
+            if (!gamePlayedRef.current)
+                return;
+
+            const updateStatus = await api.updateIntervalSession(
+                idRef.current, 
+                correctRef.current, 
+                incorrectRef.current, 
+                statsRef.current
+            );
+
+            if (updateStatus == null) {
+                setSessionID(null)
+            }
+        }
+
+        handleSessionStats();
+        const intervalId = setInterval(handleSessionStats, 30000);
         // Load all notes.mp3s into the temp array, then setState once complete
         const temp = [];
         for (let i = 0; i < 37; i++) {
             let file = new Audio(`${process.env.PUBLIC_URL}/Audio/Intervals-IndividualNotes/${i}.mp3`);
             temp.push(file);
         }
-        console.log('Component mounted')
         setAudio(temp);
+        console.log('Component mounted')
 
-        // Perform the cleanup when the route changes
-        // temp.forEach((audioFile) => {
-        //     audioFile.pause();
-        //     audioFile.src = '';
-        //   });
         return () => {
             // Cleanup function
+            handleSessionStats();
+            clearInterval(intervalId);
             setAudio([]);
             console.log('Component unmounted');
-            // if (!gamePlayed) return;
-            api.postIntervalSessionData(statsRef.current);
         };
 
     }, []);
-
-    useEffect(() => {
-        statsRef.current = statBreakdown;
-      }, [statBreakdown]);
 
     useEffect(() => {
         updateNotes();
@@ -182,7 +235,6 @@ const IntervalsContainer = () => {
             ascDescOrHarmonic, 
             correctOrIncorrect,
         );
-        console.table(updatedStats)
         setStatBreakdown(updatedStats);
         return;
     };

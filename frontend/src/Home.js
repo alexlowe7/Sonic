@@ -1,9 +1,7 @@
 import './index.css';
 import React from 'react';
-import { Container, Typography, Box, Card, CardContent, CardActions, Button, Grid, Stack, Alert } from '@mui/material';
+import { Container, Typography, Box, Card, CardContent, Button, Grid, Alert } from '@mui/material';
 import { Link } from 'react-router-dom';
-import MusicNoteIcon from '@mui/icons-material/MusicNote';
-import PianoIcon from '@mui/icons-material/Piano';
 import { Row, Col } from 'react-bootstrap';
 
 const Home = () => {
@@ -20,7 +18,7 @@ const Home = () => {
                     <h6 className='test-font'>
                         Welcome to the Sonic Ear Training App, designed to make you a better musician.
                         <br/><br/>
-                        Check out our games below, and sign up to track your progress and unlock advanced mode!
+                        Check out our games below, and sign up to track your progress and unlock bonus features.
                     </h6>
                 </Alert>   
                 <Grid container spacing={2}>

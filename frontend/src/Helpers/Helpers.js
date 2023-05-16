@@ -108,6 +108,12 @@ export const CHORDS = [
     "Minor",
 ]
 
+export const INTERVAL_LISTEN_MODES = {
+    'Ascending': 'ascending',
+    'Descending': 'descending',
+    'Harmonic': 'harmonic',
+}
+
 export const updateStatsObject = (
     stats,
     interval,
@@ -156,4 +162,12 @@ export function generate2ndNote(noteInt, intervalsArray) {
     return (noteInt + intervalNumberValue)
 }
 
+export function createStatBody(id, correct, incorrect, stats) {
+    return {
+        'id': id,
+        'total_correct': correct,
+        'total_incorrect': incorrect,
+        'stats': stats,
+    }
+}
   

@@ -11,11 +11,12 @@ const AuthProvider = ({ children }) => {
                     method: "GET",
                     credentials: 'include'
                 });
-                console.log(response)
+                
                 if (!response.ok)
                     return
                 
                 const data = await response.json();
+                console.log(data)
                 setUser(data);
             } catch (error) {
                 console.error('Failed to fetch user info:', error);
