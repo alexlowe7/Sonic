@@ -15,7 +15,7 @@ const Home = () => {
                     Discover the power of ear training with Sonic Ear Training App, designed to enhance your musical skills in Chord Identification and Interval Identification. Unlock your potential and become a well-rounded musician.
                 </Typography> */}
                 <Alert severity="info" icon={false}>
-                    <h6 className='test-font'>
+                    <h6 className='test-font mb-0'>
                         Welcome to the Sonic Ear Training App, designed to make you a better musician.
                         <br/><br/>
                         Check out our games below, and sign up to track your progress and unlock bonus features.
@@ -30,7 +30,7 @@ const Home = () => {
                                     Chord Identification
                                 </Typography>
                                 <Typography variant="body1 test-font">
-                                    Master chord recognition with our innovative exercises. Develop the ability to identify major, minor, diminished, and augmented chords, boosting your skills in playing by ear, improvisation, and transcription. Evolve as a versatile musician and conquer any chord progression.
+                                    Master chord recognition with this game. Develop the ability to identify many different chord types, from basic Minor and Major triads to advanced Jazz Chords.
                                 </Typography>
                                 <Row className='mt-3'>
                                     <Link to="/chords">
@@ -51,7 +51,7 @@ const Home = () => {
                                     Interval Identification
                                 </Typography>
                                 <Typography variant="body1 test-font">
-                                    Sharpen your ears with Interval Identification. Learn to recognize the distance between notes, enhancing your ability to identify melodies, harmonies, and musical structures. Boost your improvisation skills and learn songs by ear faster.
+                                    Sharpen your ears with Interval Identification. Learn to recognize the distance between notes, enhancing your ability to identify melodies to learn songs by ear faster
                                 </Typography>
                                 <Row className='mt-3'>
                                     <Link to="/notes">

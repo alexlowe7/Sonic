@@ -4,6 +4,7 @@ import { Alert, Button, Stack, TextField } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import useAuth from '../Authorization/useAuth';
 import api from '../API/Api';
+import { handleLoginResponse } from '../Helpers/Login';
 
 
 const LoginForm = () => {
@@ -11,7 +12,7 @@ const LoginForm = () => {
     const [errorMessage, setErrorMessage] = useState('')
     const [successMessage, setSuccessMessage] = useState('')
     const navigate = useNavigate();
-    const { user, setUser } = useAuth();
+    const { setUser } = useAuth();
 
     const initialValues = {
         email: '',
@@ -26,14 +27,12 @@ const LoginForm = () => {
         };
         
         try {
-            await api.login(
-                data, 
-                setErrorMessage, 
-                setSubmitting,
-                setSuccessMessage,
-                setUser,
-                navigate,
-            );         
+            const response = await api.login(data);
+            handleLoginResponse(
+                response, setErrorMessage, setSubmitting, 
+                setUser, setSuccessMessage, navigate
+            );
+            
         } catch (error) {
             setErrorMessage('Server Error. Please try again later.');
         }
@@ -48,16 +47,16 @@ const LoginForm = () => {
                 <Form className='register-form-container'>
                     <Stack spacing={2}>
 
-                        <h2 className='text-center mt-2 mb-0'>Login</h2>
+                        <h2 className='text-center mt-3 mb-0'>Login</h2>
 
                         <h6>*All Fields Required</h6>
 
                         {errorMessage !== '' &&
-                        <Alert severity="error">{errorMessage}</Alert>
+                            <Alert severity="error">{errorMessage}</Alert>
                         }
 
                         {successMessage !== '' &&
-                        <Alert>{successMessage}</Alert>
+                            <Alert>{successMessage}</Alert>
                         }
                         
                         <Field

@@ -11,6 +11,7 @@ const AnswerButton = ({
     const buttonRef = useRef();
 
     const handleClick = () => {
+        console.log(correctAnswer, answerName)
         if (answerName === correctAnswer) {
             buttonRef.current.classList.add("correct");
             onCorrect();

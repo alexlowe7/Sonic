@@ -12,6 +12,61 @@ export const NOTES = [
     "Bb",
     "B",
 ];
+
+export const CHORDS_CONFIG = {
+    "Major": 1,
+    "Minor": 2,
+    "Diminished": 3,
+    "Augmented": 4,
+    "Major 6": 5,
+    "Minor 6": 6,
+    "Major 7": 7,
+    "Minor 7": 8,
+    "Dominant 7": 9,
+    "Minor 7b5": 10,
+    "Diminished 7": 11,
+    "7sus4": 12,
+};
+
+export const DEFAULT_CHORD_STAT = {
+    "correct": 0, 
+    "incorrect": 0,
+};
+
+// Dynamically generate the DEFAULT_CHORDS_STAT
+export const generateDefaultChordStats = () => {
+    let stats = {};
+
+    for (let chordType in CHORDS_CONFIG) {
+        stats[chordType] = { ...DEFAULT_CHORD_STAT };
+    }
+
+    return stats;
+};
+
+export const generateChordSelection = () => {
+    let selection = {};
+    for (let chord in CHORDS_CONFIG) {
+        selection[chord] = true;
+    }
+    console.log(selection)
+    return selection;
+};
+
+export const INTERVALS_CONFIG = {
+    "Minor 2nd": 1,
+    "Major 2nd": 2,
+    "Minor 3rd": 3,
+    "Major 3rd": 4,
+    "Perfect 4th": 5,
+    "Perfect 5th": 6,
+    "Tritone": 7,
+    "Minor 6th": 8,
+    "Major 6th": 9,
+    "Minor 7th": 10,
+    "Major 7th": 11,
+    "Octave": 12,
+}
   
 export const DEFAULT_INTERVALS = [
     "Minor 2nd",
@@ -57,6 +112,8 @@ export const DEFAULT_INTERVALS_STAT = {
     "Major 7th": DEFAULT_INTERVALS_STAT_ASC_DESC,
     "Octave": DEFAULT_INTERVALS_STAT_ASC_DESC,
 };
+
+
 
 export const NUMBER_TO_INTERVAL = {
     1: "Minor 2nd",
@@ -106,7 +163,32 @@ export const DEFAULT_INTERVALS_OBJ = {
 export const CHORDS = [
     "Major", 
     "Minor",
+    "Diminished",
+    "Augmented",
+    "Major 6",
+    "Minor 6",
+    "Major 7",
+    "Minor 7",
+    "Dominant 7",
+    "Minor 7b5",
+    "Diminished 7",
+    "7sus4",
 ]
+
+export const DEFAULT_CHORD_SELECTION = {
+    "Major": true,
+    "Minor": true,
+    "Diminished": true,
+    "Augmented": true,
+    "Major 6": true,
+    "Minor 6": true,
+    "Major 7": true,
+    "Minor 7": true,
+    "Dominant 7": true,
+    "Minor 7b5": true,
+    "Diminished 7": true,
+    "7sus4": true,
+};
 
 export const INTERVAL_LISTEN_MODES = {
     'Ascending': 'ascending',
@@ -127,12 +209,21 @@ export const updateStatsObject = (
             [ascDescOrHarmonic]: {
                 ...stats[interval][ascDescOrHarmonic],
                 [correctOrIncorrect]:
-                    stats[interval][ascDescOrHarmonic][correctOrIncorrect] +
-                    1,
+                    stats[interval][ascDescOrHarmonic][correctOrIncorrect] + 1,
             },
         },
     };
   };
+
+export const updateChordStatsObject = (stats, chordType, correctOrIncorrect) => {
+    return {
+        ...stats,
+        [chordType]: {
+            ...stats[chordType],
+            [correctOrIncorrect]: stats[chordType][correctOrIncorrect] + 1,
+        }
+    }
+};
   
   // Returns a random int, min-max inclusive
 export function getRandomInt(min, max) {
@@ -150,7 +241,7 @@ export function getInterval(firstNote, secondNote) {
     return DEFAULT_INTERVALS[secondNote - firstNote - 1];
 }
 
-// Takes as input an int represending the 1st note of the interval
+// Takes an int representing the 1st note of the interval
 // Generates a random int from 0 to length of the current states intervals array
 // Using random int, finds the number value that corresponds to the interval name
 // The number is added to the input (1st note), and returned
@@ -169,5 +260,29 @@ export function createStatBody(id, correct, incorrect, stats) {
         'total_incorrect': incorrect,
         'stats': stats,
     }
+}
+
+export const combineAllIntervalStats = (allStatsObject, allStatsArray) => {
+    allStatsArray.forEach(session => {
+        Object.keys(session['stats']).forEach(interval => {
+            Object.keys(session['stats'][interval]).forEach(listenType => {
+                allStatsObject[interval][listenType]['correct'] += session['stats'][interval][listenType]['correct'];
+                allStatsObject[interval][listenType]['incorrect'] += session['stats'][interval][listenType]['incorrect'];
+            });
+        });
+    });
+
+    return allStatsObject
+}
+
+export const combineAllChordStats = (allStatsObject, allStatsArray) => {
+    allStatsArray.forEach(session => {
+        Object.keys(session['stats']).forEach(chordType => {
+            allStatsObject[chordType]['correct'] += session['stats'][chordType]['correct']
+            allStatsObject[chordType]['incorrect'] += session['stats'][chordType]['incorrect']
+        })
+    });
+
+    return allStatsObject
 }
   

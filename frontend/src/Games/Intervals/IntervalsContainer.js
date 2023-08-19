@@ -10,12 +10,11 @@ import AnswerButtonSection from "../../Components/AnswerButtonSection";
 import ScoreDisplaySection from "../../Components/ScoreDisplaySection";
 import useAuth from "../../Authorization/useAuth";
 import api from "../../API/Api";
-import StatsTable from "../../Components/StatsTable";
 
 const IntervalsContainer = () => {
     // States
-    const [sessionID, setSessionID] = useState(null)
-    const [gamePlayed, setGamePlayed] = useState(false)
+    const [sessionID, setSessionID] = useState(null);
+    const [gamePlayed, setGamePlayed] = useState(false);
     const [correct, setCorrect] = useState(0);
     const [incorrect, setIncorrect] = useState(0);
     const [score, setScore] = useState(0);
@@ -40,8 +39,9 @@ const IntervalsContainer = () => {
     const statsRef = useRef(statBreakdown);
     const idRef = useRef(sessionID);
     const gamePlayedRef = useRef(gamePlayed)
-    const correctRef= useRef(correct)
-    const incorrectRef= useRef(incorrect)
+    const correctRef = useRef(correct)
+    const incorrectRef = useRef(incorrect)
+    const numberOfNotes = 37
 
     useEffect(() => {
         statsRef.current = statBreakdown;
@@ -105,19 +105,17 @@ const IntervalsContainer = () => {
         const intervalId = setInterval(handleSessionStats, 30000);
         // Load all notes.mp3s into the temp array, then setState once complete
         const temp = [];
-        for (let i = 0; i < 37; i++) {
+        for (let i = 0; i < numberOfNotes; i++) {
             let file = new Audio(`${process.env.PUBLIC_URL}/Audio/Intervals-IndividualNotes/${i}.mp3`);
             temp.push(file);
         }
         setAudio(temp);
-        console.log('Component mounted')
 
         return () => {
             // Cleanup function
             handleSessionStats();
             clearInterval(intervalId);
             setAudio([]);
-            console.log('Component unmounted');
         };
 
     }, []);
@@ -207,12 +205,10 @@ const IntervalsContainer = () => {
     const handleIncorrectAnswer = () => {
         checkGamePlayed();
         if (hasAnswered) {
-            setScore(Math.max(score - 1, 0))
             return
         }
         updateStats("incorrect", currentInterval, isCurrentIntervalAsc(), harmonicModeEnabled);
         setIncorrect(incorrect + 1);
-        setScore(Math.max(score - 5, 0))
         setHasAnswered(true);
     };
 
@@ -328,8 +324,6 @@ const IntervalsContainer = () => {
                 activeIntervals={activeIntervals}
                 handleToggleInterval={handleToggleInterval}
             />
-            {/* <p className="test-font">This is a test. 100%. 598pts. </p> */}
-            {/* <StatsTable stats={statBreakdown}/> */}
             <ScoreDisplaySection 
                 score={score}
                 correct={correct} 

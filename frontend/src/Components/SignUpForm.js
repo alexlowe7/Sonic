@@ -1,8 +1,11 @@
 import React, { useState } from 'react';
-import { Formik, Field, Form, useField, useFormikContext } from 'formik';
+import { Formik, Field, Form } from 'formik';
 import { Alert, Button, Stack, TextField } from '@mui/material';
 import { SignUpSchema } from '../Helpers/Validation';
 import { useNavigate } from 'react-router-dom';
+import api from '../API/Api';
+import { handleLoginResponse } from '../Helpers/Login';
+import useAuth from '../Authorization/useAuth';
 
 
 const SignUpForm = () => {
@@ -10,6 +13,7 @@ const SignUpForm = () => {
     const [errorMessage, setErrorMessage] = useState('')
     const [successMessage, setSuccessMessage] = useState('')
     const navigate = useNavigate();
+    const { setUser } = useAuth();
 
     const initialValues = {
         username: '',
@@ -18,6 +22,7 @@ const SignUpForm = () => {
         confirmation: '',
     }
 
+    // Signup user then attempt to login, or re-direct to login page if login failed
     const signUpUser = async (values, { setSubmitting }) => {
         setErrorMessage('')
         const data = {
@@ -26,16 +31,14 @@ const SignUpForm = () => {
             password: values.password,
             confirmation: values.confirmation,
         };
+
+        const loginData = {
+            email: values.email,
+            password: values.password,
+        }
         
         try {
-            const response = await fetch("http://localhost:8000/register/", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify(data)
-            });
-
+            const response = await api.register(data);
             const result = await response.json();
 
             if (!response.ok) {
@@ -43,13 +46,21 @@ const SignUpForm = () => {
                 setSubmitting(false)
                 return
             }
+            
             setSuccessMessage('Sign Up successful!')
-            setTimeout(() => {
-                setSubmitting(false);
-                navigate('/')
-            }, 1000)
+
+            try {
+                const loginResponse = await api.login(loginData)
+                handleLoginResponse(
+                    loginResponse, setErrorMessage, setSubmitting, 
+                    setUser, setSuccessMessage, navigate
+                );
+            } catch {
+                navigate('/login')
+            }
+
         } catch (error) {
-            console.log('error caught')
+            console.log(error)
             setErrorMessage('Server Error. Please try again later.');
         }
     }
@@ -58,18 +69,19 @@ const SignUpForm = () => {
         <Formik
             onSubmit={signUpUser}
             initialValues={initialValues}
-            // validationSchema={SignUpSchema}
+            // validationSchema={SignUpSchema} Only using server-side validation for now
         >   
             {({ errors, touched, values, isSubmitting }) => (
                 <Form className='register-form-container'>
                     <Stack spacing={2}>
+
                         <h2 className='text-center mt-2 mb-0'>Sign Up</h2>
                         <h6>*All Fields Required</h6>
                         {errorMessage !== '' &&
-                        <Alert severity="error">{errorMessage}</Alert>
+                            <Alert severity="error">{errorMessage}</Alert>
                         }
                         {successMessage !== '' &&
-                        <Alert>{successMessage}</Alert>
+                            <Alert>{successMessage}</Alert>
                         }
                         <Field
                             as={TextField}

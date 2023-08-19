@@ -1,49 +1,99 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import PlayButton from "../../Components/PlayButton";
 import ScoreDisplaySection from "../../Components/ScoreDisplaySection";
-import GameHeader from "../../Components/GameHeader";
-import { getRandomInt, CHORDS } from "../../Helpers/Helpers";
+import { getRandomInt, CHORDS, CHORDS_CONFIG, updateChordStatsObject, 
+        generateDefaultChordStats, generateChordSelection } from "../../Helpers/Helpers";
 import IntervalButton from "../../Components/AnswerButton";
 import { Row } from "react-bootstrap";
-
-const fileCount = 25;
-const folderPath1 = 'Audio/Chords-Major-1stInversion';
-const folderPath2 = 'Audio/Chords-Minor-1stInversion';
-const fileExtension = '.mp3';
-
-const filePaths1 = Array.from({ length: fileCount }, (_, i) =>
-    `${process.env.PUBLIC_URL}/${folderPath1}/Major Triad - 1st Inversion - ${i}${fileExtension}`
-);
-
-const filePaths2 = Array.from({ length: fileCount }, (_, i) =>
-    `${process.env.PUBLIC_URL}/${folderPath2}/Minor Triad-1st Inversion-${i}${fileExtension}`
-);
-
+import api from "../../API/Api";
 
 const ChordsContainer = () => {
+    
+    const FILE_EXTENSION = '.mp3';
+    const BASE_PATH = 'Audio/Chords';
+    const FILE_COUNT = 25;
+    const selectedChordsArray = generateChordSelection()
+    
+    const generateFilePathForChord = (chordName, chordIndex) => {
+        const chordTypeNumber = CHORDS_CONFIG[chordName];
+        return `${process.env.PUBLIC_URL}/${BASE_PATH}/${chordName}/` +
+                `${chordTypeNumber}-${chordIndex}${FILE_EXTENSION}`;
+    };
+    
+    const pickRandomChord = (options) => {
+        const chords = Object.keys(options).filter(chord => options[chord]);
+        const chordType = chords[Math.floor(Math.random() * chords.length)];
+        const chordIndex = Math.floor(Math.random() * FILE_COUNT);
+        const path = generateFilePathForChord(chordType, chordIndex);
+
+        return {
+            type: chordType,
+            index: chordIndex,
+            path: path,
+        };
+    };
+    
+
     // States
+
+    // Array of chords that the user wants to play with
+    const [selectedChords, setSelectedChords] = useState(selectedChordsArray)
+    // The current chord being played 
+    const [currentChord, setCurrentChord] = useState(pickRandomChord(selectedChordsArray))
+    // Array of audio files
+    const [audio, setAudio] = useState(null);
+    // Stats 
     const [correct, setCorrect] = useState(0);
     const [incorrect, setIncorrect] = useState(0);
+    const [score, setScore] = useState(0);
+    const [stats, setStats] = useState(generateDefaultChordStats());
+    const [sessionID, setSessionID] = useState(null);
+    // If the current chord has been answered
     const [hasAnswered, setHasAnswered] = useState(false);
-    const [audio, setAudio] = useState([]);
+    
+    // Used to control button resetting after each new chord
     const [resetKey, setResetKey] = useState(0);
-    const [currentAnswer, setCurrentAnswer] = useState("")
-    const [currentChord, setCurrentChord] = useState(0)
 
-    // If no 'chord' is passed in, play 'currentChord' state 
-    const playChord = (chord = currentChord) => {
-        audio[chord].load()
-        audio[chord].play()   
-    };
+    // Refs (used for stat updating before dismount)
+    const statsRef = useRef(stats);
+    const idRef = useRef(sessionID);
+    const correctRef = useRef(correct)
+    const incorrectRef = useRef(incorrect)
 
-    // Get the correct answer based on the chordIndex input
-    // Will need to change when adding new chord types
-    const getAnswer = (chordIndex) => {
-        if (chordIndex < 25) {
-            return "Major"
-        } else if (chordIndex >= 25) {
-            return "Minor"
+    useEffect(() => {
+        statsRef.current = stats;
+      }, [stats]);
+
+    useEffect(() => {
+        idRef.current = sessionID;
+    }, [sessionID]);
+
+    useEffect(() => {
+        correctRef.current = correct
+    }, [correct])
+
+    useEffect(() => {
+        incorrectRef.current = incorrect
+    }, [incorrect])
+
+    useEffect(() => {
+        console.log("useeffect ran")
+        if (audio) {
+            audio.src = currentChord.path;
+        } else {
+            const chordAudioFile = new Audio(currentChord.path);
+            setAudio(chordAudioFile);
         }
+    }, [currentChord])
+
+    // Functions
+
+    const playChord = () => {
+        if (!audio) {
+            pickRandomChord(selectedChords)
+        }
+        audio.load()
+        audio.play() 
     };
 
     const resetButtonColors = () => {
@@ -51,76 +101,96 @@ const ChordsContainer = () => {
     };
 
     const advanceToNextChord = () => {
-        return new Promise((resolve) => {
-            const newChord = getRandomInt(0, 49);
-            const newAnswer = getAnswer(newChord);
-        
-            resetButtonColors();
-            setHasAnswered(false);
-            setCurrentChord(newChord);
-            setCurrentAnswer(newAnswer);
-            resolve({ 
-                chord: newChord
-            });
-        });
+        console.log("advanceToNextChord")
+        const newChord = pickRandomChord(selectedChords);
+        resetButtonColors();
+        setHasAnswered(false);
+        setCurrentChord(newChord);
+        return newChord;
     };
-
-    const handleCorrectAnswer = async () => {
+    
+    const handleCorrectAnswer = () => {
+        console.log("correct")       
         if (!hasAnswered) {
+            updateStats("correct", currentChord.type);
             setCorrect(correct + 1);
+            setScore(score => score + 10);
         }
-        const { chord } = await advanceToNextChord();
-        setTimeout(() => playChord(chord), 1000);
+        advanceToNextChord();
+        setTimeout(playChord, 1000);
     };
 
     const handleIncorrectAnswer = () => {
-        if (!hasAnswered) {
-            setIncorrect(incorrect + 1);
-            setHasAnswered(true);
-        }
+        console.log("incorrect")      
+        if (hasAnswered)
+            return;
+
+        updateStats("incorrect", currentChord.type);
+        setIncorrect(incorrect + 1);
+        setHasAnswered(true);
     };
 
     useEffect(() => {
 
         // On mount 
+        async function getSessiondID() {
+            const response = await api.createChordSession();
+            const id = response.id
 
-        // Set current chord and current answer
-        const newChord = getRandomInt(0, 49);
-        const newAnswer = getAnswer(newChord);
-        setCurrentChord(newChord);
-        setCurrentAnswer(newAnswer);
-        
-        // Create temp array to put into 'audio' state
-        const temp = [];
+            if (id !== null) {
+                console.log("session id: ", id)
+                setSessionID(id)
+            } else {
+                console.log('session id is null')
+            }
+            return;
+        }
 
-        // Push all audio files, from Major and Minor folders, into temp
-        filePaths1.forEach((filePath) => {
-            const audioFile = new Audio(filePath);
-            temp.push(audioFile)
-          });
+        async function handleSessionStats() {
+            if (idRef.current === null) {
+                console.log('session id is null. running get session ID again')
+                await getSessiondID();
+                return; 
+            }
+            if (correctRef === 0 && incorrectRef === 0)
+                return;
 
-        filePaths2.forEach((filePath) => {
-            const audioFile = new Audio(filePath);
-            temp.push(audioFile)
-        });
-        // Set audio state to temp array
-        setAudio(temp)
+            const updateStatus = await api.updateChordSession(
+                idRef.current, 
+                correctRef.current, 
+                incorrectRef.current, 
+                statsRef.current
+            );
+
+            if (updateStatus == null) {
+                setSessionID(null)
+            }
+        }
+
+        handleSessionStats();
+        const intervalId = setInterval(handleSessionStats, 30000);
 
         // Un-mount, clear audio state
         return () => {
-            temp.forEach((audioFile) => {
-                audioFile.pause();
-                audioFile.src = '';
-              });
-              setAudio([]);
+            setAudio(null);
+            handleSessionStats();
+            clearInterval(intervalId);
         }
     }, []);
 
-    // useEffect(() => {
-    //     // Update currentAnswer based on currentChord
-    //     const newCurrentAnswer = getAnswer(currentChord)
-    //     setCurrentAnswer(newCurrentAnswer);
-    //   }, [currentChord]);
+    const updateStats = (
+        correctOrIncorrect,
+        chordToUpdate,
+    ) => {
+      
+        const updatedStats = updateChordStatsObject(
+            stats, 
+            chordToUpdate, 
+            correctOrIncorrect,
+        );
+        setStats(updatedStats);
+        return;
+    };
 
     return (
         <div className="game-chords--container">
@@ -129,6 +199,7 @@ const ChordsContainer = () => {
                 description={"Use your ear to indentify the chord type. Change your settings to change the chord options."}
             /> */}
             <ScoreDisplaySection 
+                score={score}
                 correct={correct} 
                 incorrect={incorrect} 
             />
@@ -144,20 +215,15 @@ const ChordsContainer = () => {
                         <IntervalButton
                             key={`${answerName}-${resetKey}`}
                             answerName={answerName}
-                            correctAnswer={currentAnswer}
+                            correctAnswer={currentChord.type}
                             onCorrect={handleCorrectAnswer}
                             onIncorrect={handleIncorrectAnswer}
                         />
                     ))}
                 </div>
             </Row>
-
         </div>
-
     )
-
-
-
 }
 
 export default ChordsContainer;

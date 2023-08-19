@@ -10,5 +10,7 @@ urlpatterns = [
     # path('myprofile/', views.my_profile, name='my_profile'),
     path('intervals/create/', views.create_interval_session, name='create_interval_session'),
     path('intervals/update/', views.update_interval_session, name='update_interval_session'),
+    path('chords/create/', views.create_chord_session, name='create_chord_session'),
+    path('chords/update/', views.update_chord_session, name='update_chord_session'),
     path('stats/', views.stats, name='stats')   
 ]

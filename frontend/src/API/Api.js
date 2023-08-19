@@ -6,9 +6,6 @@ const api = {
     deleteSessionIdFromLocalStorage() {
         if (localStorage.getItem('sessionid')) {
           localStorage.removeItem('sessionid');
-          console.log('The "sessionid" cookie has been wiped from local storage.');
-        } else {
-          console.log('No "sessionid" cookie found in local storage.');
         }
     },
     getCookie(name) {
@@ -16,18 +13,24 @@ const api = {
         const parts = value.split(`; ${name}=`);
         if (parts.length === 2) return parts.pop().split(';').shift();
     },
-    async login(
-        data,
-        setErrorMessage, 
-        setSubmitting,
-        setSuccessMessage,
-        setUser,
-        navigate,
-    ) {
+    async register(data) {
         try {
-            console.log('logging in')
+            return await fetch("http://localhost:8000/register/", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify(data)
+            });  
+        } catch (error) {
+            console.log(error)
+            return error;
+        }
+    },
+    async login(data) {
+        try {
             const csrfToken = this.getCookie('csrftoken');
-            const response = await fetch(`${API_BASE_URL}/login/`, {
+            return await fetch(`${API_BASE_URL}/login/`, {
                 method: "POST",
                 credentials: "include",
                 headers: {
@@ -36,22 +39,6 @@ const api = {
                 },
                 body: JSON.stringify(data),
             });
-
-            if (!response.ok) {
-                setErrorMessage(result.message);
-                setSubmitting(false)
-                return
-            }
-
-            const result = await response.json()
-
-            console.log(result)
-            setUser(result.user)
-            setSuccessMessage('Login Successful.')
-            setTimeout(() => {
-                navigate('/dashboard')
-            }, 500)
-            
         } catch(error) {
             console.log('login error: ', error)
         }
@@ -118,7 +105,52 @@ const api = {
         } catch (error) {
             console.log('update interval session error: ', error)
         }
+    },
+    async createChordSession() {
+        try {
+            console.log('creating chord session')
+            const csrfToken = this.getCookie('csrftoken');
+            const response = await fetch(`${API_BASE_URL}/chords/create/`, {
+                method: "POST",
+                credentials: 'include',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': csrfToken,
+                },
+            });
+            
+            if (!response.ok)
+                return null;
 
+            return await response.json();
+
+        } catch (error) {
+            console.log('error: ', error)
+        }
+    },
+    async updateChordSession(sessionID, correct, incorrect, stats) {
+        try {
+            console.log('updating interval session')
+            const body = createStatBody(sessionID, correct, incorrect, stats)
+            const csrfToken = this.getCookie('csrftoken');
+            const response = await fetch(`${API_BASE_URL}/chords/update/`, {
+                method: "PUT",
+                credentials: 'include',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': csrfToken,
+                },
+                body: JSON.stringify(body),
+            });
+
+            if (!response.ok)
+                return null;
+
+            return await response.json();
+
+        } catch (error) {
+            console.log('update interval session error: ', error)
+        }
     },
     async getUserStats() {
         try {

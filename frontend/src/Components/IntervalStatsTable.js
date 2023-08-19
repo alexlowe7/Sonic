@@ -6,14 +6,12 @@ import TableHead from '@mui/material/TableHead';
 import TableRow from '@mui/material/TableRow';
 import Paper from '@mui/material/Paper';
 
-
-
-const StatsTable = ({ stats }) => {
+const IntervalStatsTable = ({ stats }) => {
     const intervalNames = Object.keys(stats);
   
     return (
-      <TableContainer component={Paper}>
-        <Table sx={{ minWidth: 650 }} aria-label="stats table">
+      <TableContainer component={Paper} sx={{ width: '60%', margin: 'auto' }}>
+        <Table sx={{ minWidth: 300, textAlign: 'center' }} aria-label="stats table">
           <TableHead>
             <TableRow>
               <TableCell>Interval</TableCell>
@@ -30,7 +28,18 @@ const StatsTable = ({ stats }) => {
                 </TableCell>
                 {Object.keys(stats[interval]).map((type) => (
                   <TableCell key={type} align="center">
-                    {`Correct: ${stats[interval][type].correct}, Incorrect: ${stats[interval][type].incorrect}`}
+                    {
+                      `${stats[interval][type].correct}/${stats[interval][type].correct + stats[interval][type].incorrect}`
+                    }
+                    <br></br>
+                    {(stats[interval][type].correct + stats[interval][type].incorrect !== 0) &&
+                      `${
+                        ((stats[interval][type].correct / 
+                        (stats[interval][type].correct + stats[interval][type].incorrect)) * 100).toFixed(0)
+                      }%`
+
+                    }
+
                   </TableCell>
                 ))}
               </TableRow>
@@ -42,5 +51,5 @@ const StatsTable = ({ stats }) => {
   };
   
 
-export default StatsTable;
+export default IntervalStatsTable;
   
