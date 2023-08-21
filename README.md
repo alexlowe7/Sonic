@@ -75,7 +75,7 @@
 This app contains two games to improve user's ability to learn songs by ear. The games are called Chords and Intervals. 
 "Chords" tests the user's ability of identifying chord types by playing random chords given the User's preferences (example: Major, Minor).
 "Intervals" tests the user's ability of identifying how far away two random notes are from each other (example: A and B are two notes away, so the interval is "major 2nd").
-Users can select the chords/interval types they want to play with by clicking settings within each game.
+Users can select the chords/interval types they want to play with by changing the settings within each game.
 Each game tracks the user's stats and breaks them down by chord/interval type. 
 "Intervals" mode also tracks the user's listening type, which is a feature that allows users to listen to the intervals in ascending order, descending order, or harmonic mode, which plays both notes at the same time.
 Listening mode stats are tracked so users can see which listening modes they need to practice.
