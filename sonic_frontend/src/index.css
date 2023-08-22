@@ -21,6 +21,13 @@ code {
     margin: auto;
 }
 
+.dashboard-container {
+  border: solid black 1px;
+  margin: auto;
+  max-width: 1000px;
+  min-width: 200px;
+}
+
 .test-font {
   font-family: 'Inter', sans-serif !important;
 }

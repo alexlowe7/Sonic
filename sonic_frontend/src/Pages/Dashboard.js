@@ -7,6 +7,7 @@ import { generateDefaultChordStats, DEFAULT_INTERVALS_STAT,
         combineAllChordStats, combineAllIntervalStats } from '../Helpers/Helpers';
 import IntervalStatsTable from '../Components/IntervalStatsTable';
 import ChordStatsTable from '../Components/ChordStatsTable';
+import { Row } from 'react-bootstrap';
 
 const Dashboard = () => {
 
@@ -48,25 +49,32 @@ const Dashboard = () => {
         user !== null ? 
         (
             <>
-                <div className='profile-container mt-3 px-2'>
-                    <h2 className='text-center'>{user.username}'s Stats</h2>
-                    <TextField 
-                        defaultValue='interval'
-                        select 
-                        fullWidth 
-                        label='Game Mode'
-                        onChange={event => handleGameModeChange(event)}
-                    >
-                        <MenuItem value='interval'>Intervals</MenuItem>
-                        <MenuItem value='chord'>Chords</MenuItem>
-                    </TextField>
+                <div className='dashboard-container mt-3'>
+                    <div className='d-flex flex-column flex-md-row'>
+                        <h2 className='mb-4 mx-auto me-md-auto mx-md-0 mb-md-0'>{user.username}'s Stats</h2>
+                        <div className='col-12 col-md-4'>
+                            <TextField 
+                                defaultValue='interval'
+                                select
+                                label='Game Mode'
+                                fullWidth
+                                onChange={event => handleGameModeChange(event)}
+                            >
+                                <MenuItem value='interval'>Intervals</MenuItem>
+                                <MenuItem value='chord'>Chords</MenuItem>
+                            </TextField>
+                        </div>
+                        
+                    </div>
+                    <div className='row gx-0'>
+                        {intervalStats !== null && gameMode === 'interval' &&
+                            <IntervalStatsTable stats={intervalStats} />
+                        }
+                        {chordStats !== null && gameMode === 'chord' &&
+                            <ChordStatsTable stats={chordStats} />
+                        }
+                    </div>
                 </div>
-                {intervalStats !== null && gameMode === 'interval' &&
-                    <IntervalStatsTable stats={intervalStats} />
-                }
-                {chordStats !== null && gameMode === 'chord' &&
-                    <ChordStatsTable stats={chordStats} />
-                }
             </>
         ) : (
             <div>Loading ... </div>

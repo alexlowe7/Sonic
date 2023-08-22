@@ -10,7 +10,7 @@ const ChordStatsTable = ({ stats }) => {
     const chordNames = Object.keys(stats);
 
     return (
-        <TableContainer component={Paper} sx={{ width: '60%', margin: 'auto' }}>
+        <TableContainer component={Paper} sx={{ width: '100%', margin: 'auto' }}>
             <Table sx={{ minWidth: 300, textAlign: 'center' }} aria-label="chord stats table">
                 <TableHead>
                     <TableRow>

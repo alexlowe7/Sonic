@@ -27,7 +27,7 @@ const links = {
 }
 
 const pages = ['Chords', 'Notes', 'Login', 'Sign Up',];
-const settings = ['Profile', 'Account', 'Dashboard', 'Logout'];
+const settings = ['Profile', 'Dashboard', 'Logout'];
 
 const Layout = ({ children }) => {
   const [anchorElNav, setAnchorElNav] = React.useState(null);
