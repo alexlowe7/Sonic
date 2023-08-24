@@ -126,6 +126,10 @@ To get a local copy up and running follow these simple steps.
    ```sh
    pipenv shell
    ```
+6. Migrate:
+   ```sh
+   python manage.py migrate
+   ```
 7. Run the backend server
    ```sh
    python manage.py runserver
